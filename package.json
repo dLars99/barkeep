@@ -14,11 +14,13 @@
   "private": true,
   "dependencies": {
     "express": "^4.17.2",
-    "knex": "^1.0.1"
+    "knex": "^1.0.1",
+    "pg": "^8.7.1"
   },
   "devDependencies": {
     "@types/express": "^4.17.13",
     "@types/node": "^17.0.13",
+    "@types/pg": "^8.6.4",
     "concurrently": "^7.0.0",
     "nodemon": "^2.0.15",
     "tslint": "^6.1.3",
