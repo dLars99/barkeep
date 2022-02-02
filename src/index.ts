@@ -1,5 +1,6 @@
 import express from "express";
 import typesRouter from "./routes/types.routes";
+import categoriesRouter from "./routes/categories.routes";
 
 const app = express();
 const port = 8080; // default port to listen
@@ -9,6 +10,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/', typesRouter);
+app.use('/', categoriesRouter);
+
 
 // start the Express server
 app.listen( port, () => {
