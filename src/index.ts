@@ -1,12 +1,14 @@
 import express from "express";
+import typesRouter from "./routes/types.routes";
+
 const app = express();
 const port = 8080; // default port to listen
 const version = process.env.npm_package_version;
 
-// define a route handler for the default home page
-app.get( "/", ( req, res ) => {
-    res.send( "Hello world!" );
-} );
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use('/', typesRouter);
 
 // start the Express server
 app.listen( port, () => {

@@ -1,8 +1,8 @@
 import * as pg from 'pg';
-import knex, { Knex } from "knex";
+import knex, {Knex} from "knex";
 
 const NODE_ENV = process.env.NODE_ENV;
-const DATABASE_URL = process.env.DATABASE_URL;
+const DATABASE_URL = process.env.DATABASE_URL as string;
 
 if (NODE_ENV !== 'development') {
   pg.defaults.ssl = {
@@ -10,15 +10,16 @@ if (NODE_ENV !== 'development') {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const db: Knex = knex({
+const config = {
   client: 'pg',
-  connection: DATABASE_URL,
+  connection: {
+    connectionString: DATABASE_URL,
+    ssl: NODE_ENV !== 'development' && {
+      rejectUnauthorized: false,
+    },
+  },
   debug: NODE_ENV === 'development',
-//   ssl: NODE_ENV !== 'development' && {
-//     sslmode: 'require',
-//     rejectUnauthorized: false,
-//   },
-});
+}
 
-export default knex;
+const db: Knex = knex(config as Knex.Config);
+export default db;
