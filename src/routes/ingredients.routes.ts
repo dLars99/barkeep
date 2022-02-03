@@ -1,10 +1,16 @@
 import { Router, Request, Response } from "express";
 import { get, post } from "../controllers/ingredients.controller";
 
-const categoriesRouter = Router();
+const ingredientsRouter = Router();
 
-categoriesRouter.get('/ingredients', async (req: Request, res: Response) => await get(req, res));
+ingredientsRouter.get(
+  "/ingredients",
+  async (req: Request, res: Response) => await get(req, res)
+);
 
-categoriesRouter.post('/ingredients', async (req: Request, res: Response) => await post(req, res));
+ingredientsRouter.post(
+  "/ingredients",
+  async (req: Request, res: Response) => await post(req, res)
+);
 
-export default categoriesRouter;
+export default ingredientsRouter;
