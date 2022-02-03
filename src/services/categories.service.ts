@@ -2,7 +2,7 @@ import { Knex } from "knex";
 import db from "../util/db";
 import { Category } from "../models/categories.model";
 
-export const getAllCategories = async(id?: number): Promise<Category[] | Category> => {
+export const getCategories = async(id?: number): Promise<Category[] | Category> => {
     const categories = await db<Category>("categories").select("*")
     .modify((builder: Knex.QueryBuilder) => {
         if (id) {

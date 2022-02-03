@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { getRecipes, newRecipe } from "../services/recipes.service";
-import { getAllTypes } from "../services/types.service";
+import { getCategories } from "../services/categories.service";
 
 export const get = async (req: Request, res: Response): Promise<Response> => {
     const id = req.query.id as string;
@@ -17,7 +17,7 @@ export const get = async (req: Request, res: Response): Promise<Response> => {
 
 export const post = async (req: Request, res: Response): Promise<Response> => {
     const { body } = req;
-    const validCategory = body.type_id && getAllTypes(body.type_id);
+    const validCategory = body.type_id && getCategories(body.type_id);
     if (!body.name || !validCategory) return res.status(400).send("Invalid ingredient");
     try {
         const createdRecipe = newRecipe(body);

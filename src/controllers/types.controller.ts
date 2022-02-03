@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { getAllTypes, newType } from "../services/types.service";
+import { getTypes, newType } from "../services/types.service";
 
-export const getTypes = async (req: Request, res: Response): Promise<Response> => {
+export const get = async (req: Request, res: Response): Promise<Response> => {
     const id = req.query.id as string;
     if (id && isNaN(Number(id))) return res.status(400).send("Invalid id");
 
     try {
-        const types = await getAllTypes(Number(id));
+        const types = await getTypes(Number(id));
         return res.json(types);
     } catch (err: unknown | any) {
         // tslint:disable-next-line

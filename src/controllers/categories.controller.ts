@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { getAllCategories, newCategory } from "../services/categories.service";
+import { getCategories, newCategory } from "../services/categories.service";
 
-export const getCategories = async (req: Request, res: Response): Promise<Response> => {
+export const get = async (req: Request, res: Response): Promise<Response> => {
     const id = req.query.id as string;
     if (id && isNaN(Number(id))) return res.status(400).send("Invalid id");
 
     try {
-        const categories = await getAllCategories(Number(id));
+        const categories = await getCategories(Number(id));
         return res.json(categories);
     } catch (err: unknown | any) {
         // tslint:disable-next-line
