@@ -9,7 +9,6 @@ export const get = async (req: Request, res: Response): Promise<Response> => {
         const ingredients = await getIngredients(Number(id));
         return res.json(ingredients);
     } catch (err: unknown | any) {
-        // tslint:disable-next-line
         console.error(err);
         return res.status(500).send(err);
     }
@@ -24,7 +23,6 @@ export const post = async (req: Request, res: Response): Promise<Response> => {
         if (!createdIngredient) throw new Error("Could not create ingredient");
         return res.status(201).send(createdIngredient);
     } catch (err: unknown | any) {
-        //tslint:disable-next-line
         console.error(err);
         return res.status(500).send(err);
     }

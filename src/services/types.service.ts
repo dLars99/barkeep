@@ -23,14 +23,12 @@ export const newType = async (body: { name: string }): Promise<IngredientType> =
         const type: IngredientType[] | void = await db<IngredientType>('ingredient_types')
         .insert( { name }, ["*"])
         .catch((err: string) => {
-            // tslint:disable-next-line
             console.error(err);
         })
 
         if (!type) throw new Error('Could not create new type');
         return type[0];
     } catch (err: unknown | any) {
-        // tslint:disable-next-line
         console.error(err)
         return err;
     }

@@ -5,7 +5,14 @@
     ],
     "jsRules": {},
     "rules": {
-        "trailing-comma": [ false ]
+        "trailing-comma": [ false ],
+        "no-console": [
+            true,
+            "debug",
+            "time",
+            "timeEnd",
+            "trace"
+        ]
     },
     "rulesDirectory": []
 }

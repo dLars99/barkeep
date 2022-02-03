@@ -9,7 +9,6 @@ export const get = async (req: Request, res: Response): Promise<Response> => {
         const categories = await getCategories(Number(id));
         return res.json(categories);
     } catch (err: unknown | any) {
-        // tslint:disable-next-line
         console.error(err);
         return res.status(500).send(err);
     }
@@ -22,7 +21,6 @@ export const post = async (req: Request, res: Response): Promise<Response> => {
         const createdCategory = newCategory(body);
         return res.status(201).send(createdCategory);
     } catch (err: unknown | any) {
-        // tslint:disable-next-line
         console.error(err);
         return res.status(500).send(err);
     }

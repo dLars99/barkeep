@@ -1,6 +1,6 @@
 import { Knex } from "knex";
 import db from "../util/db";
-import { Recipe } from "../models/recipes.model";
+import { Recipe, RecipeCreateDTO, RecipeIngredient } from "../models/recipes.model";
 
 export const getRecipes = async(id?: number): Promise<Recipe[] | Recipe> => {
     const recipes = await db<Recipe>("recipes").select("*")
@@ -17,20 +17,29 @@ export const getRecipes = async(id?: number): Promise<Recipe[] | Recipe> => {
     return recipes;
 }
 
-export const newRecipe = async (body: { name: string }): Promise<Recipe> => {
-    const { name } = body;
+export const newRecipe = async (body: RecipeCreateDTO): Promise<Recipe> => {
+    const { name, instructions, category_id, rating, glass1, glass2, ingredients } = body;
     try {
         const recipe: Recipe[] | void = await db<Recipe>('recipes')
-        .insert( { name }, ["*"])
+        .insert( { name, instructions, category_id, rating, glass1, glass2 }, ["*"])
         .catch((err: string) => {
-            // tslint:disable-next-line
             console.error(err);
         })
 
         if (!recipe) throw new Error('Could not create new Recipe');
+
+        // Link ingredients
+        console.log({recipe})
+        for (const ingredient of ingredients) {
+            const {ingredient_id, quantity} = ingredient;
+            const recipeIngredient = await db('recipe-ingredients')
+                .insert({recipe_id: recipe[0].id, ingredient_id, quantity }, ["*"])
+                .catch((err: string) => {
+                    console.error(err);
+                })
+        }
         return recipe[0];
     } catch (err: unknown | any) {
-        // tslint:disable-next-line
         console.error(err)
         return err;
     }

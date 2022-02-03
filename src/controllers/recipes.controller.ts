@@ -9,7 +9,6 @@ export const get = async (req: Request, res: Response): Promise<Response> => {
         const ingredients = await getRecipes(Number(id));
         return res.json(ingredients);
     } catch (err: unknown | any) {
-        // tslint:disable-next-line
         console.error(err);
         return res.status(500).send(err);
     }
@@ -18,13 +17,12 @@ export const get = async (req: Request, res: Response): Promise<Response> => {
 export const post = async (req: Request, res: Response): Promise<Response> => {
     const { body } = req;
     const validCategory = body.type_id && getCategories(body.type_id);
-    if (!body.name || !validCategory) return res.status(400).send("Invalid ingredient");
+    if (!body.name || !validCategory || !body.ingredients?.length) return res.status(400).send("Invalid ingredient");
     try {
         const createdRecipe = newRecipe(body);
         if (!createdRecipe) throw new Error("Could not create ingredient");
         return res.status(201).send(createdRecipe);
     } catch (err: unknown | any) {
-        //tslint:disable-next-line
         console.error(err);
         return res.status(500).send(err);
     }

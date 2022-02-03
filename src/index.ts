@@ -15,6 +15,5 @@ app.use('/', categoriesRouter);
 
 // start the Express server
 app.listen( port, () => {
-    // tslint:disable-next-line
     console.log( `server v${version} started at http://localhost:${ port }` );
 } );

@@ -23,14 +23,12 @@ export const newCategory = async (body: { name: string }): Promise<Category> => 
         const category: Category[] | void = await db<Category>('categories')
         .insert( { name }, ["*"])
         .catch((err: string) => {
-            // tslint:disable-next-line
             console.error(err);
         })
 
         if (!category) throw new Error('Could not create new category');
         return category[0];
     } catch (err: unknown | any) {
-        // tslint:disable-next-line
         console.error(err)
         return err;
     }
