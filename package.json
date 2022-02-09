@@ -13,12 +13,14 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^15.0.0",
     "express": "^4.17.2",
     "knex": "^1.0.1",
     "pg": "^8.7.1"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.12",
     "@types/express": "^4.17.13",
     "@types/node": "^17.0.13",
     "@types/pg": "^8.6.4",
