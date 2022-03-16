@@ -59,7 +59,6 @@ export const newRecipe = async (body: RecipeCreateDTO): Promise<Recipe> => {
     if (!recipe) throw new Error("Could not create new Recipe");
 
     // Link ingredients
-    console.log({ recipe });
     for (const ingredient of ingredients) {
       const { ingredient_id, quantity } = ingredient;
       const recipeIngredient: RecipeIngredient[] | void =

@@ -20,7 +20,7 @@ export const post = async (req: Request, res: Response): Promise<Response> => {
   if (!body.name || !validCategory || !body.ingredients?.length)
     return res.status(400).send("Invalid ingredient");
   try {
-    const createdRecipe = newRecipe(body);
+    const createdRecipe = await newRecipe(body);
     if (!createdRecipe) throw new Error("Could not create ingredient");
     return res.status(201).send(createdRecipe);
   } catch (err: unknown | any) {
