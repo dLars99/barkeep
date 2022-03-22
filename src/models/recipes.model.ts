@@ -14,7 +14,9 @@ export interface RecipeIngredient {
   recipe_id: number;
   ingredient_id: number;
   quantity: string;
+  quantity_type: string;
 }
+
 export interface RecipeCreateDTO extends Recipe {
   ingredients: RecipeIngredient[];
 }
