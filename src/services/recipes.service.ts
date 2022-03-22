@@ -42,38 +42,31 @@ export const newRecipe = async (body: RecipeCreateDTO): Promise<Recipe> => {
     name,
     instructions,
     category_id,
-    rating,
+    rating = 0,
     glass1,
     glass2,
     ingredients,
   } = body;
-  try {
-    const recipe: Recipe[] | void = await db<Recipe>("recipes")
-      .insert({ name, instructions, category_id, rating, glass1, glass2 }, [
-        "*",
-      ])
-      .catch((err: string) => {
-        console.error(err);
-      });
+  const recipe: Recipe[] | void = await db<Recipe>("recipes")
+    .insert({ name, instructions, category_id, rating, glass1, glass2 }, ["*"])
+    .catch((err: string) => {
+      throw err;
+    });
 
-    if (!recipe) throw new Error("Could not create new Recipe");
+  if (!recipe) throw new Error("Could not create new Recipe");
 
-    // Link ingredients
-    for (const ingredient of ingredients) {
-      const { ingredient_id, quantity, quantity_type } = ingredient;
-      const recipeIngredient: RecipeIngredient[] | void =
-        await db<RecipeIngredient>("recipe_ingredients")
-          .insert(
-            { recipe_id: recipe[0].id, ingredient_id, quantity, quantity_type },
-            ["*"]
-          )
-          .catch((err: string) => {
-            console.error(err);
-          });
-    }
-    return recipe[0];
-  } catch (err: unknown | any) {
-    console.error(err);
-    return err;
+  // Link ingredients
+  for (const ingredient of ingredients) {
+    const { ingredient_id, quantity, quantity_type } = ingredient;
+    const recipeIngredient: RecipeIngredient[] | void =
+      await db<RecipeIngredient>("recipe_ingredients")
+        .insert(
+          { recipe_id: recipe[0].id, ingredient_id, quantity, quantity_type },
+          ["*"]
+        )
+        .catch((err: string) => {
+          throw err;
+        });
   }
+  return recipe[0];
 };

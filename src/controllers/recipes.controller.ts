@@ -16,12 +16,12 @@ export const get = async (req: Request, res: Response): Promise<Response> => {
 
 export const post = async (req: Request, res: Response): Promise<Response> => {
   const { body } = req;
-  const validCategory = body.type_id && getCategories(body.type_id);
+  const validCategory = body.category_id && getCategories(body.category_id);
   if (!body.name || !validCategory || !body.ingredients?.length)
-    return res.status(400).send("Invalid ingredient");
+    return res.status(400).send("Invalid drink");
   try {
     const createdRecipe = await newRecipe(body);
-    if (!createdRecipe) throw new Error("Could not create ingredient");
+    if (!createdRecipe) res.status(422).send("Unable to create drink");
     return res.status(201).send(createdRecipe);
   } catch (err: unknown | any) {
     console.error(err);
