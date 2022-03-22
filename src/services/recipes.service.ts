@@ -42,7 +42,7 @@ export const newRecipe = async (body: RecipeCreateDTO): Promise<Recipe> => {
     name,
     instructions,
     category_id,
-    rating = null,
+    rating = 0,
     glass1,
     glass2,
     ingredients,
