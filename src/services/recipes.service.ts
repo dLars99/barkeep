@@ -60,10 +60,13 @@ export const newRecipe = async (body: RecipeCreateDTO): Promise<Recipe> => {
 
     // Link ingredients
     for (const ingredient of ingredients) {
-      const { ingredient_id, quantity } = ingredient;
+      const { ingredient_id, quantity, quantity_type } = ingredient;
       const recipeIngredient: RecipeIngredient[] | void =
         await db<RecipeIngredient>("recipe_ingredients")
-          .insert({ recipe_id: recipe[0].id, ingredient_id, quantity }, ["*"])
+          .insert(
+            { recipe_id: recipe[0].id, ingredient_id, quantity, quantity_type },
+            ["*"]
+          )
           .catch((err: string) => {
             console.error(err);
           });
