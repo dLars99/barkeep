@@ -10,31 +10,53 @@ import {
 export const getRecipes = async (
   id?: number
 ): Promise<RecipeDTO[] | RecipeDTO> => {
-  const recipes = await db<RecipeDTO>("recipes")
-    .select("*")
-    .leftJoin(
-      "recipe_ingredients",
-      "recipes.id",
-      "recipe_ingredients.recipe_id"
+  const recipes = await db<RecipeDTO>({ r: "recipes" })
+    .select(
+      "r.*",
+      "categories.name as categoryName",
+      "i.id as ingredientId",
+      "i.name as ingredientName",
+      "i.suggestions"
     )
-    .leftJoin(
-      "ingredients",
-      "recipe_ingredients.ingredient_id",
-      "ingredients.id"
-    )
+    .leftJoin("categories", "r.category_id", "categories.id")
+    .leftJoin("recipe_ingredients", "r.id", "recipe_ingredients.recipe_id")
+    .leftJoin("ingredients as i", "recipe_ingredients.ingredient_id", "i.id")
     .modify((builder: Knex.QueryBuilder) => {
       if (id) {
         builder.where("id", id).first();
       }
     })
+    // .groupBy("r.id")
     .catch((err: string) => {
       throw err;
     });
   if (!recipes) {
     throw new Error("Could not get recipes");
   }
-
-  return recipes;
+  // Rearrange ingredients into nested array
+  let index = -1;
+  const groupedRecipes = recipes.reduce(
+    (assembledRecipes: any[], nextRecipe: any) => {
+      const currentIngredient = {
+        id: nextRecipe.ingredientId,
+        name: nextRecipe.ingredientName,
+        suggestions: nextRecipe.suggestions,
+      };
+      if (nextRecipe.id === assembledRecipes[index]?.id) {
+        console.log("FOUND");
+        assembledRecipes[index].ingredients.push(currentIngredient);
+      } else {
+        nextRecipe.ingredients = [currentIngredient];
+        assembledRecipes.push(nextRecipe);
+        index++;
+      }
+      console.log({ assembledRecipes });
+      return assembledRecipes;
+    },
+    []
+  );
+  console.log(groupedRecipes);
+  return groupedRecipes;
 };
 
 export const newRecipe = async (body: RecipeCreateDTO): Promise<Recipe> => {
