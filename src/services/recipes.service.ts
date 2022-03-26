@@ -2,26 +2,29 @@ import { Knex } from "knex";
 import db from "../util/db";
 import {
   Recipe,
+  RecipeCardDTO,
   RecipeCreateDTO,
+  RecipeDatabaseModel,
   RecipeDTO,
   RecipeIngredient,
 } from "../models/recipes.model";
 
 export const getRecipes = async (
   id?: number
-): Promise<RecipeDTO[] | RecipeDTO> => {
-  const recipes = await db<RecipeDTO>("recipes")
-    .select("*")
-    .leftJoin(
-      "recipe_ingredients",
-      "recipes.id",
-      "recipe_ingredients.recipe_id"
+): Promise<RecipeCardDTO[] | RecipeCardDTO> => {
+  const recipes = await db<RecipeDatabaseModel>({ r: "recipes" })
+    .select(
+      "r.*",
+      "categories.name as categoryName",
+      "ri.quantity",
+      "ri.quantity_type",
+      "i.id as ingredientId",
+      "i.name as ingredientName",
+      "i.suggestions"
     )
-    .leftJoin(
-      "ingredients",
-      "recipe_ingredients.ingredient_id",
-      "ingredients.id"
-    )
+    .leftJoin("categories", "r.category_id", "categories.id")
+    .leftJoin("recipe_ingredients as ri", "r.id", "ri.recipe_id")
+    .leftJoin("ingredients as i", "ri.ingredient_id", "i.id")
     .modify((builder: Knex.QueryBuilder) => {
       if (id) {
         builder.where("id", id).first();
@@ -33,8 +36,37 @@ export const getRecipes = async (
   if (!recipes) {
     throw new Error("Could not get recipes");
   }
-
-  return recipes;
+  // Rearrange ingredients into nested array
+  let index = -1;
+  const groupedRecipes = recipes.reduce(
+    (assembledRecipes: RecipeCardDTO[], nextRecipe: RecipeDatabaseModel) => {
+      const currentIngredient = {
+        id: nextRecipe.ingredientId,
+        name: nextRecipe.ingredientName,
+        suggestions: nextRecipe.suggestions,
+        quantity: nextRecipe.quantity,
+        quantity_type: nextRecipe.quantity_type,
+      };
+      if (nextRecipe.id === assembledRecipes[index]?.id) {
+        assembledRecipes[index].ingredients.push(currentIngredient);
+      } else {
+        assembledRecipes.push({
+          id: nextRecipe.id,
+          name: nextRecipe.name,
+          instructions: nextRecipe.instructions,
+          category: nextRecipe.categoryName,
+          rating: nextRecipe.rating,
+          glass1: nextRecipe.glass1,
+          glass2: nextRecipe.glass2,
+          ingredients: [currentIngredient],
+        });
+        index++;
+      }
+      return assembledRecipes;
+    },
+    []
+  );
+  return groupedRecipes;
 };
 
 export const newRecipe = async (body: RecipeCreateDTO): Promise<Recipe> => {
@@ -47,7 +79,7 @@ export const newRecipe = async (body: RecipeCreateDTO): Promise<Recipe> => {
     glass2,
     ingredients,
   } = body;
-  const recipe: Recipe[] | void = await db<Recipe>("recipes")
+  const recipe: Recipe[] | void = await db<RecipeCreateDTO>("recipes")
     .insert({ name, instructions, category_id, rating, glass1, glass2 }, ["*"])
     .catch((err: string) => {
       throw err;
