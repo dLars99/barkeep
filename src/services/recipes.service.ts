@@ -14,15 +14,15 @@ export const getRecipes = async (
     .select(
       "r.*",
       "categories.name as categoryName",
-      "recipe_ingredients.quantity",
-      "recipe_ingredients.quantity_type",
+      "ri.quantity",
+      "ri.quantity_type",
       "i.id as ingredientId",
       "i.name as ingredientName",
       "i.suggestions"
     )
     .leftJoin("categories", "r.category_id", "categories.id")
-    .leftJoin("recipe_ingredients", "r.id", "recipe_ingredients.recipe_id")
-    .leftJoin("ingredients as i", "recipe_ingredients.ingredient_id", "i.id")
+    .leftJoin("recipe_ingredients as ri", "r.id", "ri.recipe_id")
+    .leftJoin("ingredients as i", "ri.ingredient_id", "i.id")
     .modify((builder: Knex.QueryBuilder) => {
       if (id) {
         builder.where("id", id).first();
@@ -48,15 +48,25 @@ export const getRecipes = async (
       if (nextRecipe.id === assembledRecipes[index]?.id) {
         assembledRecipes[index].ingredients.push(currentIngredient);
       } else {
-        nextRecipe.ingredients = [currentIngredient];
-        assembledRecipes.push(nextRecipe);
+        const structuredRecipe = {
+          id: nextRecipe.id,
+          instructions: nextRecipe.instructions,
+          category: {
+            id: nextRecipe.category_id,
+            name: nextRecipe.categoryName,
+          },
+          rating: nextRecipe.rating,
+          glass1: nextRecipe.glass1,
+          glass2: nextRecipe.glass2,
+          ingredients: [currentIngredient],
+        };
+        assembledRecipes.push(structuredRecipe);
         index++;
       }
       return assembledRecipes;
     },
     []
   );
-  console.log(groupedRecipes);
   return groupedRecipes;
 };
 
