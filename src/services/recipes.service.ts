@@ -48,8 +48,9 @@ export const getRecipes = async (
       if (nextRecipe.id === assembledRecipes[index]?.id) {
         assembledRecipes[index].ingredients.push(currentIngredient);
       } else {
-        const structuredRecipe = {
+        assembledRecipes.push({
           id: nextRecipe.id,
+          name: nextRecipe.name,
           instructions: nextRecipe.instructions,
           category: {
             id: nextRecipe.category_id,
@@ -59,8 +60,7 @@ export const getRecipes = async (
           glass1: nextRecipe.glass1,
           glass2: nextRecipe.glass2,
           ingredients: [currentIngredient],
-        };
-        assembledRecipes.push(structuredRecipe);
+        });
         index++;
       }
       return assembledRecipes;
