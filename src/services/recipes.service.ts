@@ -14,6 +14,8 @@ export const getRecipes = async (
     .select(
       "r.*",
       "categories.name as categoryName",
+      "recipe_ingredients.quantity",
+      "recipe_ingredients.quantity_type",
       "i.id as ingredientId",
       "i.name as ingredientName",
       "i.suggestions"
@@ -26,7 +28,6 @@ export const getRecipes = async (
         builder.where("id", id).first();
       }
     })
-    // .groupBy("r.id")
     .catch((err: string) => {
       throw err;
     });
@@ -41,16 +42,16 @@ export const getRecipes = async (
         id: nextRecipe.ingredientId,
         name: nextRecipe.ingredientName,
         suggestions: nextRecipe.suggestions,
+        quantity: nextRecipe.quantity,
+        quantity_type: nextRecipe.quantity_type,
       };
       if (nextRecipe.id === assembledRecipes[index]?.id) {
-        console.log("FOUND");
         assembledRecipes[index].ingredients.push(currentIngredient);
       } else {
         nextRecipe.ingredients = [currentIngredient];
         assembledRecipes.push(nextRecipe);
         index++;
       }
-      console.log({ assembledRecipes });
       return assembledRecipes;
     },
     []
