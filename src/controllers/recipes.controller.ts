@@ -35,21 +35,20 @@ export const post = async (req: Request, res: Response): Promise<Response> => {
 
 export const put = async (req: Request, res: Response): Promise<Response> => {
   const { body } = req;
-  const { recipeId } = req.params;
-
+  const { recipeid } = req.params;
   try {
     const validCategory = body.category_id && getCategories(body.category_id);
     if (
       !validCategory ||
       !body.name ||
       !body.ingredients?.length ||
-      recipeId !== body.id
+      recipeid !== body.id
     ) {
       res.status(400).send("Invalid drink recipe");
-      const updatedDrink = await updateRecipe(body);
-      if (!updatedDrink) res.status(422).send("Unable to update drink");
-      return res.status(204).send(updatedDrink);
     }
+    const updatedDrink = await updateRecipe(body);
+    if (!updatedDrink) res.status(422).send("Unable to update drink");
+    return res.status(204).send(updatedDrink);
   } catch (err: unknown | any) {
     console.error(err);
     return res.status(500).send(err);

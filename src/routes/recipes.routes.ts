@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { get, post } from "../controllers/recipes.controller";
+import { get, post, put } from "../controllers/recipes.controller";
 
 const recipesRouter = Router();
 
@@ -14,8 +14,8 @@ recipesRouter.post(
 );
 
 recipesRouter.put(
-  "/recipes/:recipeId",
-  async (req: Request, res: Response) => await post(req, res)
+  "/recipes/:recipeid",
+  async (req: Request, res: Response) => await put(req, res)
 );
 
 export default recipesRouter;

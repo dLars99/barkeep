@@ -70,14 +70,17 @@ export const getRecipes = async (
 };
 
 const addRecipeIngredients = async (
-  recipe_id: number,
+  recipeId: number,
   ingredients: RecipeIngredient[]
 ): Promise<void> => {
   for (const ingredient of ingredients) {
     const { ingredient_id, quantity, quantity_type } = ingredient;
     const recipeIngredient: RecipeIngredient[] | void =
       await db<RecipeIngredient>("recipe_ingredients")
-        .insert({ recipe_id, ingredient_id, quantity, quantity_type }, ["*"])
+        .insert(
+          { recipe_id: recipeId, ingredient_id, quantity, quantity_type },
+          ["*"]
+        )
         .catch((err: string) => {
           throw err;
         });
@@ -130,8 +133,8 @@ export const updateRecipe = async (body: RecipeCreateDTO): Promise<Recipe> => {
 
   // Use two passes to compare current and incoming ingredients
   // First pass: look for ingredients to add
-  let ingredientsToAdd: RecipeIngredient[] = [];
-  let remainingIngredients: RecipeIngredient[] = [];
+  const ingredientsToAdd: RecipeIngredient[] = [];
+  const remainingIngredients: RecipeIngredient[] = [];
   ingredients.forEach((ingredient) => {
     if (currentIngredients.includes(ingredient.ingredient_id)) {
       remainingIngredients.push(ingredient);
@@ -142,8 +145,8 @@ export const updateRecipe = async (body: RecipeCreateDTO): Promise<Recipe> => {
 
   // Second pass: look for ingredients to delete and sort the rest as
   // ingredients to update
-  let ingredientsToRemove: RecipeIngredient[] = [];
-  let ingredientsToUpdate: RecipeIngredient[] = [];
+  const ingredientsToRemove: RecipeIngredient[] = [];
+  const ingredientsToUpdate: RecipeIngredient[] = [];
   ingredients.forEach((ingredient) => {
     if (
       remainingIngredients.some(
@@ -165,33 +168,37 @@ export const updateRecipe = async (body: RecipeCreateDTO): Promise<Recipe> => {
       throw err;
     });
 
-  await addRecipeIngredients(id, ingredientsToAdd);
+  if (ingredientsToAdd) await addRecipeIngredients(id, ingredientsToAdd);
 
-  await db("recipe_ingredients")
-    .whereIn("id", ingredientsToRemove)
-    .delete()
-    .catch((err) => {
-      throw err;
-    });
+  if (ingredientsToRemove) {
+    await db("recipe_ingredients")
+      .whereIn("id", ingredientsToRemove)
+      .delete()
+      .catch((err) => {
+        throw err;
+      });
+  }
 
-  for (const ingredient of ingredients) {
-    const { ingredient_id, quantity, quantity_type } = ingredient;
-    const recipeIngredient: RecipeIngredient[] | void =
-      await db<RecipeIngredient>("recipe_ingredients")
-        .where({ ingredient_id })
-        .andWhere({ recipe_id: id })
-        .update(
-          {
-            recipe_id: id,
-            ingredient_id,
-            quantity,
-            quantity_type,
-          },
-          ["*"]
-        )
-        .catch((err: string) => {
-          throw err;
-        });
+  if (ingredientsToUpdate) {
+    for (const ingredient of ingredientsToUpdate) {
+      const { ingredient_id, quantity, quantity_type } = ingredient;
+      const recipeIngredient: RecipeIngredient[] | void =
+        await db<RecipeIngredient>("recipe_ingredients")
+          .where({ ingredient_id })
+          .andWhere({ recipe_id: id })
+          .update(
+            {
+              recipe_id: id,
+              ingredient_id,
+              quantity,
+              quantity_type,
+            },
+            ["*"]
+          )
+          .catch((err: string) => {
+            throw err;
+          });
+    }
   }
 
   if (!recipe) throw new Error("Could not create new Recipe");
