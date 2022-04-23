@@ -5,7 +5,6 @@ import {
   RecipeCardDTO,
   RecipeCreateDTO,
   RecipeDatabaseModel,
-  RecipeDTO,
   RecipeIngredient,
 } from "../models/recipes.model";
 
@@ -27,7 +26,7 @@ export const getRecipes = async (
     .leftJoin("ingredients as i", "ri.ingredient_id", "i.id")
     .modify((builder: Knex.QueryBuilder) => {
       if (id) {
-        builder.where("id", id).first();
+        builder.where("r.id", id);
       }
     })
     .catch((err: string) => {
@@ -36,6 +35,7 @@ export const getRecipes = async (
   if (!recipes) {
     throw new Error("Could not get recipes");
   }
+
   // Rearrange ingredients into nested array
   let index = -1;
   const groupedRecipes = recipes.reduce(
@@ -66,7 +66,7 @@ export const getRecipes = async (
     },
     []
   );
-  return groupedRecipes;
+  return id ? groupedRecipes[0] : groupedRecipes;
 };
 
 export const newRecipe = async (body: RecipeCreateDTO): Promise<Recipe> => {
