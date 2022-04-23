@@ -13,4 +13,9 @@ recipesRouter.post(
   async (req: Request, res: Response) => await post(req, res)
 );
 
+recipesRouter.put(
+  "/recipes/:recipeId",
+  async (req: Request, res: Response) => await post(req, res)
+);
+
 export default recipesRouter;
