@@ -66,7 +66,7 @@ export const getRecipes = async (
     },
     []
   );
-  return groupedRecipes;
+  return id ? groupedRecipes[0] : groupedRecipes;
 };
 
 export const newRecipe = async (body: RecipeCreateDTO): Promise<Recipe> => {
