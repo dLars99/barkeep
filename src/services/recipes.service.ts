@@ -69,6 +69,24 @@ export const getRecipes = async (
   return id ? groupedRecipes[0] : groupedRecipes;
 };
 
+const addRecipeIngredients = async (
+  recipeId: number,
+  ingredients: RecipeIngredient[]
+): Promise<void> => {
+  for (const ingredient of ingredients) {
+    const { ingredient_id, quantity, quantity_type } = ingredient;
+    const recipeIngredient: RecipeIngredient[] | void =
+      await db<RecipeIngredient>("recipe_ingredients")
+        .insert(
+          { recipe_id: recipeId, ingredient_id, quantity, quantity_type },
+          ["*"]
+        )
+        .catch((err: string) => {
+          throw err;
+        });
+  }
+};
+
 export const newRecipe = async (body: RecipeCreateDTO): Promise<Recipe> => {
   const {
     name,
@@ -88,17 +106,101 @@ export const newRecipe = async (body: RecipeCreateDTO): Promise<Recipe> => {
   if (!recipe) throw new Error("Could not create new Recipe");
 
   // Link ingredients
-  for (const ingredient of ingredients) {
-    const { ingredient_id, quantity, quantity_type } = ingredient;
-    const recipeIngredient: RecipeIngredient[] | void =
-      await db<RecipeIngredient>("recipe_ingredients")
-        .insert(
-          { recipe_id: recipe[0].id, ingredient_id, quantity, quantity_type },
-          ["*"]
-        )
-        .catch((err: string) => {
-          throw err;
-        });
+  await addRecipeIngredients(recipe[0].id, ingredients);
+  return recipe[0];
+};
+
+export const updateRecipe = async (body: RecipeCreateDTO): Promise<Recipe> => {
+  const {
+    id,
+    name,
+    instructions,
+    category_id,
+    rating = 0,
+    glass1,
+    glass2,
+    ingredients,
+  } = body;
+
+  // Get lists of ingredients to add and remove
+  const currentIngredients = await db<RecipeCreateDTO>("recipe_ingredients")
+    .select("ingredient_id")
+    .where("recipe_id", id)
+    .then((res) => res.map((ingredient) => ingredient.ingredient_id))
+    .catch((err: string) => {
+      throw err;
+    });
+
+  // Use two passes to compare current and incoming ingredients
+  // First pass: look for ingredients to add
+  const ingredientsToAdd: RecipeIngredient[] = [];
+  const remainingIngredients: RecipeIngredient[] = [];
+  ingredients.forEach((ingredient) => {
+    if (currentIngredients.includes(ingredient.ingredient_id)) {
+      remainingIngredients.push(ingredient);
+    } else {
+      ingredientsToAdd.push(ingredient);
+    }
+  });
+
+  // Second pass: look for ingredients to delete and sort the rest as
+  // ingredients to update
+  const ingredientsToRemove: RecipeIngredient[] = [];
+  const ingredientsToUpdate: RecipeIngredient[] = [];
+  ingredients.forEach((ingredient) => {
+    if (
+      remainingIngredients.some(
+        (currentIngredient) =>
+          currentIngredient.ingredient_id === ingredient.ingredient_id
+      )
+    ) {
+      ingredientsToUpdate.push(ingredient);
+    } else {
+      ingredientsToRemove.push(ingredient);
+    }
+  });
+
+  // Update the DB
+  const recipe: Recipe[] | void = await db<RecipeCreateDTO>("recipes")
+    .where({ id })
+    .update({ name, instructions, category_id, rating, glass1, glass2 }, ["*"])
+    .catch((err: string) => {
+      throw err;
+    });
+
+  if (ingredientsToAdd) await addRecipeIngredients(id, ingredientsToAdd);
+
+  if (ingredientsToRemove) {
+    await db("recipe_ingredients")
+      .whereIn("id", ingredientsToRemove)
+      .delete()
+      .catch((err) => {
+        throw err;
+      });
   }
+
+  if (ingredientsToUpdate) {
+    for (const ingredient of ingredientsToUpdate) {
+      const { ingredient_id, quantity, quantity_type } = ingredient;
+      const recipeIngredient: RecipeIngredient[] | void =
+        await db<RecipeIngredient>("recipe_ingredients")
+          .where({ ingredient_id })
+          .andWhere({ recipe_id: id })
+          .update(
+            {
+              recipe_id: id,
+              ingredient_id,
+              quantity,
+              quantity_type,
+            },
+            ["*"]
+          )
+          .catch((err: string) => {
+            throw err;
+          });
+    }
+  }
+
+  if (!recipe) throw new Error("Could not create new Recipe");
   return recipe[0];
 };
