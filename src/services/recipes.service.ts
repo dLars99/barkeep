@@ -131,34 +131,22 @@ export const updateRecipe = async (body: RecipeCreateDTO): Promise<Recipe> => {
       throw err;
     });
 
-  // Use two passes to compare current and incoming ingredients
-  // First pass: look for ingredients to add
-  const ingredientsToAdd: RecipeIngredient[] = [];
-  const remainingIngredients: RecipeIngredient[] = [];
-  ingredients.forEach((ingredient) => {
-    if (currentIngredients.includes(ingredient.ingredient_id)) {
-      remainingIngredients.push(ingredient);
-    } else {
-      ingredientsToAdd.push(ingredient);
-    }
-  });
-
-  // Second pass: look for ingredients to delete and sort the rest as
-  // ingredients to update
-  const ingredientsToRemove: RecipeIngredient[] = [];
-  const ingredientsToUpdate: RecipeIngredient[] = [];
-  ingredients.forEach((ingredient) => {
-    if (
-      remainingIngredients.some(
-        (currentIngredient) =>
-          currentIngredient.ingredient_id === ingredient.ingredient_id
+  const ingredientsToAdd = ingredients.filter(
+    (ingredient) => !currentIngredients.includes(ingredient.ingredient_id)
+  );
+  const ingredientsToRemove = currentIngredients.filter(
+    (currentIngredient) =>
+      !ingredients.some(
+        (ingredient) => ingredient.ingredient_id === currentIngredient
       )
-    ) {
-      ingredientsToUpdate.push(ingredient);
-    } else {
-      ingredientsToRemove.push(ingredient);
-    }
-  });
+  );
+  const ingredientsToUpdate = ingredients.filter(
+    (ingredient) =>
+      !ingredientsToAdd.some(
+        (newIngredient) =>
+          newIngredient.ingredient_id === ingredient.ingredient_id
+      ) || !ingredientsToRemove.includes(ingredient.ingredient_id)
+  );
 
   // Update the DB
   const recipe: Recipe[] | void = await db<RecipeCreateDTO>("recipes")
@@ -170,9 +158,10 @@ export const updateRecipe = async (body: RecipeCreateDTO): Promise<Recipe> => {
 
   if (ingredientsToAdd) await addRecipeIngredients(id, ingredientsToAdd);
 
-  if (ingredientsToRemove) {
+  for (const ingredient of ingredientsToRemove) {
     await db("recipe_ingredients")
-      .whereIn("id", ingredientsToRemove)
+      .where({ ingredient_id: ingredient })
+      .andWhere({ recipe_id: id })
       .delete()
       .catch((err) => {
         throw err;
