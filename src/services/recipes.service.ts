@@ -9,7 +9,8 @@ import {
 } from "../models/recipes.model";
 
 export const getRecipes = async (
-  id?: number
+  id?: number,
+  query?: string
 ): Promise<RecipeCardDTO[] | RecipeCardDTO> => {
   const recipes = await db<RecipeDatabaseModel>({ r: "recipes" })
     .select(
@@ -27,6 +28,10 @@ export const getRecipes = async (
     .modify((builder: Knex.QueryBuilder) => {
       if (id) {
         builder.where("r.id", id);
+      }
+      if (query) {
+        const searchTerms = query.split(" ").map((word: string) => `%${word}%`);
+        builder.whereRaw(`recipes.name ilike any (?)`, [searchTerms]);
       }
     })
     .catch((err: string) => {
