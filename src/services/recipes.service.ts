@@ -74,16 +74,74 @@ export const getRecipes = async (
   return id ? groupedRecipes[0] : groupedRecipes;
 };
 
-export const getRecipesByIngredients = async (ingredientIds: string[]) => {
-  const recipes = await db({ r: "recipes" })
-    .select("r.*")
-    .count("ri.id as matches")
-    .leftJoin("recipe_ingredients as ri", "r.id", "ri.recipe_id")
-    .whereIn("ri.ingredient_id", ingredientIds)
-    .groupBy("ri.recipe_id", "r.id")
-    .orderBy("matches", "desc");
+const assembleGroupedRecipes = (
+  recipes: RecipeDatabaseModel[]
+): RecipeCardDTO[] => {
+  let index = -1;
+  return recipes.reduce(
+    (assembledRecipes: RecipeCardDTO[], nextRecipe: RecipeDatabaseModel) => {
+      const currentIngredient = {
+        id: nextRecipe.ingredientId,
+        name: nextRecipe.ingredientName,
+        suggestions: nextRecipe.suggestions,
+        quantity: nextRecipe.quantity,
+        quantity_type: nextRecipe.quantity_type,
+      };
+      if (nextRecipe.id === assembledRecipes[index]?.id) {
+        assembledRecipes[index].ingredients.push(currentIngredient);
+      } else {
+        assembledRecipes.push({
+          id: nextRecipe.id,
+          name: nextRecipe.name,
+          instructions: nextRecipe.instructions,
+          category: nextRecipe.categoryName,
+          rating: nextRecipe.rating,
+          glass1: nextRecipe.glass1,
+          glass2: nextRecipe.glass2,
+          ingredients: [currentIngredient],
+        });
+        index++;
+        if (nextRecipe.matches)
+          assembledRecipes[index].matches = nextRecipe.matches;
+      }
+      return assembledRecipes;
+    },
+    []
+  );
+};
 
-  return recipes;
+export const getRecipesByIngredients = async (ingredientIds: string[]) => {
+  const recipes = await db
+    .select(
+      "rm.*",
+      "categories.name as categoryName",
+      "rmi.quantity",
+      "rmi.quantity_type",
+      "i.id as ingredientId",
+      "i.name as ingredientName",
+      "i.suggestions"
+    )
+    .from(
+      db({ r: "recipes" })
+        .select("r.*")
+        .count("ri.id as matches")
+        .leftJoin("recipe_ingredients as ri", { "ri.recipe_id": "r.id" })
+        .whereIn("ri.ingredient_id", ingredientIds)
+        .groupBy("ri.recipe_id", "r.id")
+        .orderBy("matches", "desc")
+        .as("rm")
+    )
+    .leftJoin("categories", "rm.category_id", "categories.id")
+    .leftJoin("recipe_ingredients as rmi", "rm.id", "rmi.recipe_id")
+    .leftJoin("ingredients as i", "rmi.ingredient_id", "i.id")
+    .catch((err: string) => {
+      throw err;
+    });
+
+  if (!recipes) throw new Error("Could not get recipes");
+
+  const groupedRecipes = assembleGroupedRecipes(recipes);
+  return groupedRecipes;
 };
 
 const addRecipeIngredients = async (
