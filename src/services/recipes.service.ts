@@ -74,6 +74,18 @@ export const getRecipes = async (
   return id ? groupedRecipes[0] : groupedRecipes;
 };
 
+export const getRecipesByIngredients = async (ingredientIds: string[]) => {
+  const recipes = await db({ r: "recipes" })
+    .select("r.*")
+    .count("ri.id as matches")
+    .leftJoin("recipe_ingredients as ri", "r.id", "ri.recipe_id")
+    .whereIn("ri.ingredient_id", ingredientIds)
+    .groupBy("ri.recipe_id", "r.id")
+    .orderBy("matches", "desc");
+
+  return recipes;
+};
+
 const addRecipeIngredients = async (
   recipeId: number,
   ingredients: RecipeIngredient[]
