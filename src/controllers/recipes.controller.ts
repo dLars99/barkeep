@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import {
   getRecipes,
+  getRecipesByIngredients,
   newRecipe,
   updateRecipe,
 } from "../services/recipes.service";
@@ -9,9 +10,15 @@ import { getCategories } from "../services/categories.service";
 export const get = async (req: Request, res: Response): Promise<Response> => {
   const id = req.query.id as string;
   const query = req.query.query as string;
+  const ingredientIds = req.query.ingredientId as string[];
   if (id && isNaN(Number(id))) return res.status(400).send("Invalid id");
   try {
-    const ingredients = await getRecipes(Number(id), query);
+    let ingredients;
+    if (ingredientIds?.length) {
+      ingredients = await getRecipesByIngredients(ingredientIds);
+    } else {
+      ingredients = await getRecipes(Number(id), query);
+    }
     return res.json(ingredients);
   } catch (err: unknown | any) {
     console.error(err);

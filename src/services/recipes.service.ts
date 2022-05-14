@@ -41,9 +41,16 @@ export const getRecipes = async (
     throw new Error("Could not get recipes");
   }
 
-  // Rearrange ingredients into nested array
+  const groupedRecipes = assembleGroupedRecipes(recipes);
+  return id ? groupedRecipes[0] : groupedRecipes;
+};
+
+// Rearrange ingredients into nested array
+const assembleGroupedRecipes = (
+  recipes: RecipeDatabaseModel[]
+): RecipeCardDTO[] => {
   let index = -1;
-  const groupedRecipes = recipes.reduce(
+  return recipes.reduce(
     (assembledRecipes: RecipeCardDTO[], nextRecipe: RecipeDatabaseModel) => {
       const currentIngredient = {
         id: nextRecipe.ingredientId,
@@ -66,12 +73,47 @@ export const getRecipes = async (
           ingredients: [currentIngredient],
         });
         index++;
+        if (nextRecipe.matches)
+          assembledRecipes[index].matches = nextRecipe.matches;
       }
       return assembledRecipes;
     },
     []
   );
-  return id ? groupedRecipes[0] : groupedRecipes;
+};
+
+export const getRecipesByIngredients = async (ingredientIds: string[]) => {
+  const recipes = await db
+    .select(
+      "rm.*",
+      "categories.name as categoryName",
+      "rmi.quantity",
+      "rmi.quantity_type",
+      "i.id as ingredientId",
+      "i.name as ingredientName",
+      "i.suggestions"
+    )
+    .from(
+      db({ r: "recipes" })
+        .select("r.*")
+        .count("ri.id as matches")
+        .leftJoin("recipe_ingredients as ri", { "ri.recipe_id": "r.id" })
+        .whereIn("ri.ingredient_id", ingredientIds)
+        .groupBy("ri.recipe_id", "r.id")
+        .orderBy("matches", "desc")
+        .as("rm")
+    )
+    .leftJoin("categories", "rm.category_id", "categories.id")
+    .leftJoin("recipe_ingredients as rmi", "rm.id", "rmi.recipe_id")
+    .leftJoin("ingredients as i", "rmi.ingredient_id", "i.id")
+    .catch((err: string) => {
+      throw err;
+    });
+
+  if (!recipes) throw new Error("Could not get recipes");
+
+  const groupedRecipes = assembleGroupedRecipes(recipes);
+  return groupedRecipes;
 };
 
 const addRecipeIngredients = async (

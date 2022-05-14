@@ -37,6 +37,7 @@ export interface RecipeCardIngredient {
 export interface RecipeCardDTO extends Recipe {
   category: string;
   ingredients: RecipeCardIngredient[];
+  matches?: number;
 }
 
 export interface RecipeDatabaseModel extends Recipe {
@@ -46,4 +47,5 @@ export interface RecipeDatabaseModel extends Recipe {
   suggestions: string;
   quantity: number;
   quantity_type: string;
+  matches?: number;
 }
