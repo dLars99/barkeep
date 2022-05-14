@@ -41,39 +41,11 @@ export const getRecipes = async (
     throw new Error("Could not get recipes");
   }
 
-  // Rearrange ingredients into nested array
-  let index = -1;
-  const groupedRecipes = recipes.reduce(
-    (assembledRecipes: RecipeCardDTO[], nextRecipe: RecipeDatabaseModel) => {
-      const currentIngredient = {
-        id: nextRecipe.ingredientId,
-        name: nextRecipe.ingredientName,
-        suggestions: nextRecipe.suggestions,
-        quantity: nextRecipe.quantity,
-        quantity_type: nextRecipe.quantity_type,
-      };
-      if (nextRecipe.id === assembledRecipes[index]?.id) {
-        assembledRecipes[index].ingredients.push(currentIngredient);
-      } else {
-        assembledRecipes.push({
-          id: nextRecipe.id,
-          name: nextRecipe.name,
-          instructions: nextRecipe.instructions,
-          category: nextRecipe.categoryName,
-          rating: nextRecipe.rating,
-          glass1: nextRecipe.glass1,
-          glass2: nextRecipe.glass2,
-          ingredients: [currentIngredient],
-        });
-        index++;
-      }
-      return assembledRecipes;
-    },
-    []
-  );
+  const groupedRecipes = assembleGroupedRecipes(recipes);
   return id ? groupedRecipes[0] : groupedRecipes;
 };
 
+// Rearrange ingredients into nested array
 const assembleGroupedRecipes = (
   recipes: RecipeDatabaseModel[]
 ): RecipeCardDTO[] => {

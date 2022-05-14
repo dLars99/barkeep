@@ -11,7 +11,6 @@ export const get = async (req: Request, res: Response): Promise<Response> => {
   const id = req.query.id as string;
   const query = req.query.query as string;
   const ingredientIds = req.query.ingredientId as string[];
-  console.log({ ingredientIds });
   if (id && isNaN(Number(id))) return res.status(400).send("Invalid id");
   try {
     let ingredients;
