@@ -23,9 +23,9 @@ const db = require("knex")({
 
 const createCategoriesTable = async () => {
   try {
-    await knex.schema.hasTable("categories").then((exists) => {
+    await db.schema.hasTable("categories").then((exists) => {
       if (!exists) {
-        return knex.schema.createTable("categories", (t) => {
+        return db.schema.createTable("categories", (t) => {
           t.increments("id").primary();
           t.string("category_name", 100).unique().notNullable();
         });
@@ -40,9 +40,9 @@ const createCategoriesTable = async () => {
 
 const createIngredientTypesTable = async () => {
   try {
-    await knex.schema.hasTable("ingredient_types").then((exists) => {
+    await db.schema.hasTable("ingredient_types").then((exists) => {
       if (!exists) {
-        return knex.schema.createTable("ingredient_types", (t) => {
+        return db.schema.createTable("ingredient_types", (t) => {
           t.increments("id").primary();
           t.string("ingredient_type_name", 100).unique().notNullable();
         });
@@ -59,9 +59,9 @@ const createIngredientTypesTable = async () => {
 
 const createIngredientsTable = async () => {
   try {
-    await knex.schema.hasTable("ingredients").then((exists) => {
+    await db.schema.hasTable("ingredients").then((exists) => {
       if (!exists) {
-        return knex.schema.createTable("ingredients", (t) => {
+        return db.schema.createTable("ingredients", (t) => {
           t.increments("id").primary();
           t.string("ingredient_name", 100).notNullable();
           t.bigint("ingredient_type_id")
@@ -81,9 +81,9 @@ const createIngredientsTable = async () => {
 
 const createDrinksTable = async () => {
   try {
-    await knex.schema.hasTable("drinks").then(function (exists) {
+    await db.schema.hasTable("drinks").then(function (exists) {
       if (!exists) {
-        return knex.schema.createTable("drinks", function (t) {
+        return db.schema.createTable("drinks", function (t) {
           t.increments("id").primary();
           t.string("drink_name").notNullable();
           t.bigint("category_id")
@@ -106,9 +106,9 @@ const createDrinksTable = async () => {
 
 const createDrinkIngredientsTable = async () => {
   try {
-    await knex.schema.hasTable("drink_ingredients").then(function (exists) {
+    await db.schema.hasTable("drink_ingredients").then(function (exists) {
       if (!exists) {
-        return knex.schema.createTable("drink_ingredients", function (t) {
+        return db.schema.createTable("drink_ingredients", function (t) {
           t.bigint("drink_id").notNullable().references("id").inTable("drinks");
           t.bigint("ingredient_id")
             .notNullable()
@@ -138,7 +138,7 @@ const createDbTables = async () => {
     await createDrinkIngredientsTable();
     process.exit(0);
   } catch (err) {
-    console.error("Something went wrong: ", error);
+    console.error("Error creating tables: ", err);
     process.exit(1);
   }
 };
