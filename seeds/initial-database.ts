@@ -1,17 +1,21 @@
+import * as seed from "./dataFiles/seedData";
+
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.seed = function (knex) {
-  // Deletes ALL existing entries
-  return knex("table_name")
+exports.seed = async (knex) => {
+  return seedTable(knex, "categories")
+    .then(() => seedTable(knex, "ingredient_types"))
+    .then(() => seedTable(knex, "ingredients"))
+    .then(() => seedTable(knex, "drinks"))
+    .then(() => seedTable(knex, "drink_ingredients"));
+};
+
+const seedTable = async (knex, tableName) => {
+  return knex(tableName)
     .del()
     .then(function () {
-      // Inserts seed entries
-      return knex("table_name").insert([
-        { id: 1, colName: "rowValue1" },
-        { id: 2, colName: "rowValue2" },
-        { id: 3, colName: "rowValue3" },
-      ]);
+      return knex(tableName).insert(seed[tableName]);
     });
 };
