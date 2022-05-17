@@ -114,7 +114,7 @@ const createDrinkIngredientsTable = async () => {
             .notNullable()
             .references("id")
             .inTable("ingredients");
-          t.integer("quantity").notNullable();
+          t.decimal("quantity").notNullable();
           t.string("quantity_type").notNullable();
           t.primary(["drink_id", "ingredient_id"]);
         });
