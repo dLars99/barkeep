@@ -18,7 +18,7 @@ export const post = async (req: Request, res: Response): Promise<Response> => {
   const { body } = req;
   const validType =
     body.ingredient_type_id && getTypes(body.ingredient_type_id);
-  if (!body.name || !validType)
+  if (!body.ingredient_name || !validType)
     return res.status(400).send("Invalid ingredient");
   try {
     const createdIngredient = await newIngredient(body);
