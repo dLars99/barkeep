@@ -31,7 +31,7 @@ export const getDrinks = async (
       }
       if (query) {
         const searchTerms = query.split(" ").map((word: string) => `%${word}%`);
-        builder.whereRaw(`drinks.drink_name ilike any (?)`, [searchTerms]);
+        builder.whereRaw(`d.drink_name ilike any (?)`, [searchTerms]);
       }
     })
     .catch((err: string) => {
@@ -94,9 +94,9 @@ export const getDrinksByIngredients = async (ingredientIds: string[]) => {
       "i.suggestions"
     )
     .from(
-      db({ r: "drinks" })
+      db({ d: "drinks" })
         .select("d.*")
-        .count("di.id as matches")
+        .count("di.* as matches")
         .leftJoin("drink_ingredients as di", { "di.drink_id": "d.id" })
         .whereIn("di.ingredient_id", ingredientIds)
         .groupBy("di.drink_id", "d.id")
