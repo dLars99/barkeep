@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import {
-  getRecipes,
-  getRecipesByIngredients,
-  newRecipe,
-  updateRecipe,
-} from "../services/recipes.service";
+  getDrinks,
+  getDrinksByIngredients,
+  newDrink,
+  updateDrink,
+} from "../services/drinks.service";
 import { getCategories } from "../services/categories.service";
 
 export const get = async (req: Request, res: Response): Promise<Response> => {
@@ -15,9 +15,9 @@ export const get = async (req: Request, res: Response): Promise<Response> => {
   try {
     let ingredients;
     if (ingredientIds?.length) {
-      ingredients = await getRecipesByIngredients(ingredientIds);
+      ingredients = await getDrinksByIngredients(ingredientIds);
     } else {
-      ingredients = await getRecipes(Number(id), query);
+      ingredients = await getDrinks(Number(id), query);
     }
     return res.json(ingredients);
   } catch (err: unknown | any) {
@@ -30,11 +30,11 @@ export const post = async (req: Request, res: Response): Promise<Response> => {
   const { body } = req;
   try {
     const validCategory = body.category_id && getCategories(body.category_id);
-    if (!body.name || !validCategory || !body.ingredients?.length)
+    if (!body.drink_name || !validCategory || !body.ingredients?.length)
       return res.status(400).send("Invalid drink");
-    const createdRecipe = await newRecipe(body);
-    if (!createdRecipe) res.status(422).send("Unable to create drink");
-    return res.status(201).send(createdRecipe);
+    const createdDrink = await newDrink(body);
+    if (!createdDrink) res.status(422).send("Unable to create drink");
+    return res.status(201).send(createdDrink);
   } catch (err: unknown | any) {
     console.error(err);
     return res.status(500).send(err);
@@ -43,18 +43,18 @@ export const post = async (req: Request, res: Response): Promise<Response> => {
 
 export const put = async (req: Request, res: Response): Promise<Response> => {
   const { body } = req;
-  const { recipeid } = req.params;
+  const { drinkid } = req.params;
   try {
     const validCategory = body.category_id && getCategories(body.category_id);
     if (
       !validCategory ||
-      !body.name ||
+      !body.drink_name ||
       !body.ingredients?.length ||
-      recipeid !== body.id
+      drinkid !== body.id
     ) {
-      res.status(400).send("Invalid drink recipe");
+      res.status(400).send("Invalid drink drink");
     }
-    const updatedDrink = await updateRecipe(body);
+    const updatedDrink = await updateDrink(body);
     if (!updatedDrink) res.status(422).send("Unable to update drink");
     return res.status(204).send(updatedDrink);
   } catch (err: unknown | any) {

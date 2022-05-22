@@ -1,21 +1,21 @@
 import { Router, Request, Response } from "express";
-import { get, post, put } from "../controllers/recipes.controller";
+import { get, post, put } from "../controllers/drinks.controller";
 
-const recipesRouter = Router();
+const drinksRouter = Router();
 
-recipesRouter.get(
-  "/recipes",
+drinksRouter.get(
+  "/drinks",
   async (req: Request, res: Response) => await get(req, res)
 );
 
-recipesRouter.post(
-  "/recipes",
+drinksRouter.post(
+  "/drinks",
   async (req: Request, res: Response) => await post(req, res)
 );
 
-recipesRouter.put(
-  "/recipes/:recipeid",
+drinksRouter.put(
+  "/drinks/:drinkid",
   async (req: Request, res: Response) => await put(req, res)
 );
 
-export default recipesRouter;
+export default drinksRouter;

@@ -1,49 +1,49 @@
 import { Category } from "./categories.model";
 import { Ingredient } from "./ingredients.model";
 
-export interface Recipe {
+export interface Drink {
   id?: number;
-  name: string;
+  drink_name: string;
   instructions?: string;
   rating?: number;
   glass1?: string;
   glass2?: string;
 }
 
-export interface RecipeIngredient {
+export interface DrinkIngredient {
   id?: number;
-  recipe_id: number;
+  drink_id: number;
   ingredient_id: number;
   quantity: string;
   quantity_type: string;
 }
 
-export interface RecipeCreateDTO extends Recipe {
+export interface DrinkCreateDTO extends Drink {
   category_id: number;
-  ingredients: RecipeIngredient[];
+  ingredients: DrinkIngredient[];
 }
 
-export interface RecipeDTO extends Recipe {
+export interface DrinkDTO extends Drink {
   category_id: number;
   ingredients: Ingredient[];
 }
 
-export interface RecipeCardIngredient {
+export interface DrinkCardIngredient {
   id: number;
-  name: string;
+  ingredient_name: string;
   quantity: number;
   quantity_type: string;
 }
-export interface RecipeCardDTO extends Recipe {
+export interface DrinkCardDTO extends Drink {
   category: string;
-  ingredients: RecipeCardIngredient[];
+  ingredients: DrinkCardIngredient[];
   matches?: number;
 }
 
-export interface RecipeDatabaseModel extends Recipe {
-  categoryName: string;
+export interface DrinkDatabaseModel extends Drink {
+  category_name: string;
   ingredientId: number;
-  ingredientName: string;
+  ingredient_name: string;
   suggestions: string;
   quantity: number;
   quantity_type: string;

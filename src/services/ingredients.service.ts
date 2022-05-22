@@ -23,10 +23,10 @@ export const getIngredients = async (
 };
 
 export const newIngredient = async (body: Ingredient): Promise<Ingredient> => {
-  const { name, ingredient_type_id, suggestions } = body;
+  const { ingredient_name, ingredient_type_id, suggestions } = body;
   try {
     const ingredient: Ingredient[] | void = await db<Ingredient>("ingredients")
-      .insert({ name, ingredient_type_id, suggestions }, ["*"])
+      .insert({ ingredient_name, ingredient_type_id, suggestions }, ["*"])
       .catch((err: string) => {
         console.error(err);
         throw err;

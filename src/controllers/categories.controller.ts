@@ -16,7 +16,8 @@ export const get = async (req: Request, res: Response): Promise<Response> => {
 
 export const post = async (req: Request, res: Response): Promise<Response> => {
   const { body } = req;
-  if (!body || !body.name) return res.status(400).send("Incomplete new type");
+  if (!body || !body.category_name)
+    return res.status(400).send("Incomplete new category");
   try {
     const createdCategory = await newCategory(body);
     return res.status(201).send(createdCategory);
