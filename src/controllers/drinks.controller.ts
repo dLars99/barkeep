@@ -45,14 +45,16 @@ export const put = async (req: Request, res: Response): Promise<Response> => {
   const { body } = req;
   const { drinkid } = req.params;
   try {
-    const validCategory = body.category_id && getCategories(body.category_id);
+    const validCategory =
+      body.category_id && (await getCategories(body.category_id));
+    console.log({ validCategory }, typeof body.id, typeof drinkid);
     if (
       !validCategory ||
       !body.drink_name ||
       !body.ingredients?.length ||
-      drinkid !== body.id
+      Number(drinkid) !== body.id
     ) {
-      res.status(400).send("Invalid drink drink");
+      res.status(400).send("Invalid drink");
     }
     const updatedDrink = await updateDrink(body);
     if (!updatedDrink) res.status(422).send("Unable to update drink");
