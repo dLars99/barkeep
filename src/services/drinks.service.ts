@@ -70,6 +70,7 @@ const assembleGroupedDrinks = (
           rating: nextDrink.rating,
           glass1: nextDrink.glass1,
           glass2: nextDrink.glass2,
+          video_url: nextDrink.video_url,
           ingredients: [currentIngredient],
         });
         index++;
@@ -142,12 +143,22 @@ export const newDrink = async (body: DrinkCreateDTO): Promise<Drink> => {
     rating = 0,
     glass1,
     glass2,
+    video_url,
     ingredients,
   } = body;
   const drink: Drink[] | void = await db<DrinkCreateDTO>("drinks")
-    .insert({ drink_name, instructions, category_id, rating, glass1, glass2 }, [
-      "*",
-    ])
+    .insert(
+      {
+        drink_name,
+        instructions,
+        category_id,
+        rating,
+        glass1,
+        glass2,
+        video_url,
+      },
+      ["*"]
+    )
     .catch((err: string) => {
       throw err;
     });
@@ -168,6 +179,7 @@ export const updateDrink = async (body: DrinkCreateDTO): Promise<Drink> => {
     rating = 0,
     glass1,
     glass2,
+    video_url,
     ingredients,
   } = body;
 
@@ -200,9 +212,18 @@ export const updateDrink = async (body: DrinkCreateDTO): Promise<Drink> => {
   // Update the DB
   const drink: Drink[] | void = await db<DrinkCreateDTO>("drinks")
     .where({ id })
-    .update({ drink_name, instructions, category_id, rating, glass1, glass2 }, [
-      "*",
-    ])
+    .update(
+      {
+        drink_name,
+        instructions,
+        category_id,
+        rating,
+        glass1,
+        glass2,
+        video_url,
+      },
+      ["*"]
+    )
     .catch((err: string) => {
       throw err;
     });
