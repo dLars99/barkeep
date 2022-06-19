@@ -114,7 +114,6 @@ export const getDrinksByIngredients = async (ingredientIds: string[]) => {
     .leftJoin("categories", "dm.category_id", "categories.id")
     .leftJoin("drink_ingredients as dmi", "dm.id", "dmi.drink_id")
     .leftJoin("ingredients as i", "dmi.ingredient_id", "i.id")
-    // .groupBy("dm.id")
     .catch((err: string) => {
       throw err;
     });
