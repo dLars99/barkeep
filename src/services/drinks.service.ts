@@ -61,6 +61,13 @@ const assembleGroupedDrinks = (
       };
       if (nextDrink.id === assembledDrinks[index]?.id) {
         assembledDrinks[index].ingredients.push(currentIngredient);
+      } else if (
+        assembledDrinks.some((drink: Drink) => drink.id === nextDrink.id)
+      ) {
+        const existingIndex = assembledDrinks.findIndex(
+          (drink: Drink) => drink.id === nextDrink.id
+        );
+        assembledDrinks[existingIndex].ingredients.push(currentIngredient);
       } else {
         assembledDrinks.push({
           id: nextDrink.id,
@@ -107,12 +114,12 @@ export const getDrinksByIngredients = async (ingredientIds: string[]) => {
     .leftJoin("categories", "dm.category_id", "categories.id")
     .leftJoin("drink_ingredients as dmi", "dm.id", "dmi.drink_id")
     .leftJoin("ingredients as i", "dmi.ingredient_id", "i.id")
+    // .groupBy("dm.id")
     .catch((err: string) => {
       throw err;
     });
 
   if (!drinks) throw new Error("Could not get drinks");
-
   const groupedDrinks = assembleGroupedDrinks(drinks);
   return groupedDrinks;
 };
