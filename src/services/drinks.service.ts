@@ -61,6 +61,13 @@ const assembleGroupedDrinks = (
       };
       if (nextDrink.id === assembledDrinks[index]?.id) {
         assembledDrinks[index].ingredients.push(currentIngredient);
+      } else if (
+        assembledDrinks.some((drink: Drink) => drink.id === nextDrink.id)
+      ) {
+        const existingIndex = assembledDrinks.findIndex(
+          (drink: Drink) => drink.id === nextDrink.id
+        );
+        assembledDrinks[existingIndex].ingredients.push(currentIngredient);
       } else {
         assembledDrinks.push({
           id: nextDrink.id,
@@ -112,7 +119,6 @@ export const getDrinksByIngredients = async (ingredientIds: string[]) => {
     });
 
   if (!drinks) throw new Error("Could not get drinks");
-
   const groupedDrinks = assembleGroupedDrinks(drinks);
   return groupedDrinks;
 };
