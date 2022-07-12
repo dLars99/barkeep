@@ -194,7 +194,7 @@ export const drink_ingredients = [
     drink_id: 2,
     ingredient_id: 4,
     quantity: 2,
-    quantity_type: "ounces",
+    quantity_type: "ounce",
   },
   {
     drink_id: 2,
