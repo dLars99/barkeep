@@ -14,7 +14,7 @@ Barkeep is a drink cataloging app that lets the user:
 - Search those recipes based on the ingredients on hand
 - Add new recipes as they are found
 
-This is 1 of 2 applications needed to run Barkeep. The frontend can be found [here](https://github.com/dlars99/barkeep).
+This is 1 of 2 applications needed to run Barkeep. The frontend can be found [here](https://github.com/dlars99/barkeep-frontend).
 
 ### Technical Background
 
