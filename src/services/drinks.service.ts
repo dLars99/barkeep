@@ -8,23 +8,30 @@ import {
   DrinkIngredient,
 } from "../models/drinks.model";
 
-export const getDrinks = async (
-  id?: number,
-  query?: string
-): Promise<DrinkCardDTO[] | DrinkCardDTO> => {
+type GetDrinksOptions = {
+  id?: number;
+  limit: number;
+  offset?: number;
+  query?: string;
+};
+export const getDrinks = async ({
+  id,
+  query,
+  limit,
+  offset,
+}: GetDrinksOptions): Promise<DrinkCardDTO[] | DrinkCardDTO> => {
   const drinks = await db<DrinkDatabaseModel>({ d: "drinks" })
     .select(
       "d.*",
       "categories.category_name",
-      "di.quantity",
-      "di.quantity_type",
-      "i.id as ingredientId",
-      "i.ingredient_name",
-      "i.suggestions"
+      db.raw(
+        "json_agg(json_build_object('id', i.id, 'ingredient_name', i.ingredient_name, 'ingredient_type_id', i.ingredient_type_id, 'ingredient_type_name', it.ingredient_type_name, 'quantity', di.quantity, 'quantity_type', di.quantity_type, 'suggestions', i.suggestions)) as ingredients"
+      )
     )
     .leftJoin("categories", "d.category_id", "categories.id")
     .leftJoin("drink_ingredients as di", "d.id", "di.drink_id")
     .leftJoin("ingredients as i", "di.ingredient_id", "i.id")
+    .leftJoin("ingredient_types as it", "i.ingredient_type_id", "it.id")
     .modify((builder: Knex.QueryBuilder) => {
       if (id) {
         builder.where("d.id", id);
@@ -34,6 +41,10 @@ export const getDrinks = async (
         builder.whereRaw(`d.drink_name ilike any (?)`, [searchTerms]);
       }
     })
+    .groupBy("d.id", "categories.category_name")
+    .orderBy("d.id")
+    .limit(limit || 10)
+    .offset(offset || 0)
     .catch((err: string) => {
       throw err;
     });
@@ -41,8 +52,7 @@ export const getDrinks = async (
     throw new Error("Could not get drinks");
   }
 
-  const groupedDrinks = assembleGroupedDrinks(drinks);
-  return id ? groupedDrinks[0] : groupedDrinks;
+  return id ? drinks[0] : drinks;
 };
 
 // Rearrange ingredients into nested array
