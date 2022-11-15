@@ -8,7 +8,7 @@ import {
 import { getCategories } from "../services/categories.service";
 
 export const get = async (req: Request, res: Response): Promise<Response> => {
-  const id = Number(req.query.id);
+  const id = Number(req.params.drinkid) || Number(req.query.id);
   const query = req.query.query as string;
   const limit = Number(req.query.limit);
   const offset = Number(req.query.offset);
@@ -21,7 +21,7 @@ export const get = async (req: Request, res: Response): Promise<Response> => {
   try {
     let drinks;
     if (ingredientIds?.length) {
-      drinks = await getDrinksByIngredients(ingredientIds);
+      drinks = await getDrinksByIngredients(ingredientIds, limit, offset);
     } else {
       const options = {
         id,

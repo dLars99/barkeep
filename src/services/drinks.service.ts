@@ -1,5 +1,5 @@
-import { Knex } from "knex";
 import db from "../util/db";
+import data, { GetDrinksOptions } from "../repositories/drinks.respository";
 import {
   Drink,
   DrinkCardDTO,
@@ -8,129 +8,30 @@ import {
   DrinkIngredient,
 } from "../models/drinks.model";
 
-type GetDrinksOptions = {
-  id?: number;
-  limit: number;
-  offset?: number;
-  query?: string;
-};
-export const getDrinks = async ({
-  id,
-  query,
-  limit,
-  offset,
-}: GetDrinksOptions): Promise<DrinkCardDTO[] | DrinkCardDTO> => {
-  const drinks = await db<DrinkDatabaseModel>({ d: "drinks" })
-    .select(
-      "d.*",
-      "categories.category_name",
-      db.raw(
-        "json_agg(json_build_object('id', i.id, 'ingredient_name', i.ingredient_name, 'ingredient_type_id', i.ingredient_type_id, 'ingredient_type_name', it.ingredient_type_name, 'quantity', di.quantity, 'quantity_type', di.quantity_type, 'suggestions', i.suggestions)) as ingredients"
-      )
-    )
-    .leftJoin("categories", "d.category_id", "categories.id")
-    .leftJoin("drink_ingredients as di", "d.id", "di.drink_id")
-    .leftJoin("ingredients as i", "di.ingredient_id", "i.id")
-    .leftJoin("ingredient_types as it", "i.ingredient_type_id", "it.id")
-    .modify((builder: Knex.QueryBuilder) => {
-      if (id) {
-        builder.where("d.id", id);
-      }
-      if (query) {
-        const searchTerms = query.split(" ").map((word: string) => `%${word}%`);
-        builder.whereRaw(`d.drink_name ilike any (?)`, [searchTerms]);
-      }
-    })
-    .groupBy("d.id", "categories.category_name")
-    .orderBy("d.id")
-    .limit(limit || 10)
-    .offset(offset || 0)
-    .catch((err: string) => {
-      throw err;
-    });
+export const getDrinks = async (
+  drinkOptions: GetDrinksOptions
+): Promise<DrinkCardDTO[] | DrinkCardDTO> => {
+  const { id } = drinkOptions;
+  const drinks = await data.getDrinks(drinkOptions);
   if (!drinks) {
     throw new Error("Could not get drinks");
   }
-
   return id ? drinks[0] : drinks;
 };
 
-// Rearrange ingredients into nested array
-const assembleGroupedDrinks = (
-  drinks: DrinkDatabaseModel[]
-): DrinkCardDTO[] => {
-  let index = -1;
-  return drinks.reduce(
-    (assembledDrinks: DrinkCardDTO[], nextDrink: DrinkDatabaseModel) => {
-      const currentIngredient = {
-        id: nextDrink.ingredientId,
-        ingredient_name: nextDrink.ingredient_name,
-        suggestions: nextDrink.suggestions,
-        quantity: nextDrink.quantity,
-        quantity_type: nextDrink.quantity_type,
-      };
-      if (nextDrink.id === assembledDrinks[index]?.id) {
-        assembledDrinks[index].ingredients.push(currentIngredient);
-      } else if (
-        assembledDrinks.some((drink: Drink) => drink.id === nextDrink.id)
-      ) {
-        const existingIndex = assembledDrinks.findIndex(
-          (drink: Drink) => drink.id === nextDrink.id
-        );
-        assembledDrinks[existingIndex].ingredients.push(currentIngredient);
-      } else {
-        assembledDrinks.push({
-          id: nextDrink.id,
-          drink_name: nextDrink.drink_name,
-          instructions: nextDrink.instructions,
-          category: nextDrink.category_name,
-          rating: nextDrink.rating,
-          glass1: nextDrink.glass1,
-          glass2: nextDrink.glass2,
-          video_url: nextDrink.video_url,
-          ingredients: [currentIngredient],
-        });
-        index++;
-        if (nextDrink.matches)
-          assembledDrinks[index].matches = nextDrink.matches;
-      }
-      return assembledDrinks;
-    },
-    []
+export const getDrinksByIngredients = async (
+  ingredientIds: string[],
+  limit = 10,
+  offset = 0
+) => {
+  const drinks = await data.getDrinksByIngredients(
+    ingredientIds,
+    limit,
+    offset
   );
-};
-
-export const getDrinksByIngredients = async (ingredientIds: string[]) => {
-  const drinks = await db
-    .select(
-      "dm.*",
-      "categories.category_name",
-      "dmi.quantity",
-      "dmi.quantity_type",
-      "i.id as ingredientId",
-      "i.ingredient_name",
-      "i.suggestions"
-    )
-    .from(
-      db({ d: "drinks" })
-        .select("d.*")
-        .count("di.* as matches")
-        .leftJoin("drink_ingredients as di", { "di.drink_id": "d.id" })
-        .whereIn("di.ingredient_id", ingredientIds)
-        .groupBy("di.drink_id", "d.id")
-        .orderBy("matches", "desc")
-        .as("dm")
-    )
-    .leftJoin("categories", "dm.category_id", "categories.id")
-    .leftJoin("drink_ingredients as dmi", "dm.id", "dmi.drink_id")
-    .leftJoin("ingredients as i", "dmi.ingredient_id", "i.id")
-    .catch((err: string) => {
-      throw err;
-    });
 
   if (!drinks) throw new Error("Could not get drinks");
-  const groupedDrinks = assembleGroupedDrinks(drinks);
-  return groupedDrinks;
+  return drinks;
 };
 
 const addDrinkIngredients = async (
@@ -152,34 +53,11 @@ const addDrinkIngredients = async (
 };
 
 export const newDrink = async (body: DrinkCreateDTO): Promise<Drink> => {
-  const {
-    drink_name,
-    instructions,
-    category_id,
-    rating = 0,
-    glass1,
-    glass2,
-    video_url,
-    ingredients,
-  } = body;
-  const drink: Drink[] | void = await db<DrinkCreateDTO>("drinks")
-    .insert(
-      {
-        drink_name,
-        instructions,
-        category_id,
-        rating,
-        glass1,
-        glass2,
-        video_url,
-      },
-      ["*"]
-    )
-    .catch((err: string) => {
-      throw err;
-    });
+  const drink = await data.insertDrink(body);
 
   if (!drink) throw new Error("Could not create new Drink");
+
+  const { ingredients } = body;
 
   // Link ingredients
   await addDrinkIngredients(drink[0].id, ingredients);
