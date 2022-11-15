@@ -65,17 +65,7 @@ export const newDrink = async (body: DrinkCreateDTO): Promise<Drink> => {
 };
 
 export const updateDrink = async (body: DrinkCreateDTO): Promise<Drink> => {
-  const {
-    id,
-    drink_name,
-    instructions,
-    category_id,
-    rating = 0,
-    glass1,
-    glass2,
-    video_url,
-    ingredients,
-  } = body;
+  const { id, ingredients } = body;
 
   // Get lists of ingredients to add and remove
   const currentIngredients = await db<DrinkCreateDTO>("drink_ingredients")
@@ -103,24 +93,8 @@ export const updateDrink = async (body: DrinkCreateDTO): Promise<Drink> => {
       ) || !ingredientsToRemove.includes(ingredient.ingredient_id)
   );
 
-  // Update the DB
-  const drink: Drink[] | void = await db<DrinkCreateDTO>("drinks")
-    .where({ id })
-    .update(
-      {
-        drink_name,
-        instructions,
-        category_id,
-        rating,
-        glass1,
-        glass2,
-        video_url,
-      },
-      ["*"]
-    )
-    .catch((err: string) => {
-      throw err;
-    });
+  const drink = await data.updateDrink(body);
+  if (!drink) throw new Error("Could not update drink");
 
   if (ingredientsToAdd) await addDrinkIngredients(id, ingredientsToAdd);
 
@@ -156,6 +130,5 @@ export const updateDrink = async (body: DrinkCreateDTO): Promise<Drink> => {
     }
   }
 
-  if (!drink) throw new Error("Could not create new drink");
   return drink[0];
 };

@@ -5,7 +5,6 @@ import {
   DrinkCardDTO,
   DrinkCreateDTO,
   DrinkDatabaseModel,
-  DrinkIngredient,
 } from "../models/drinks.model";
 
 export type GetDrinksOptions = {
@@ -127,4 +126,35 @@ const insertDrink = async (body: DrinkCreateDTO): Promise<Drink[]> => {
     });
 };
 
-export default { getDrinks, getDrinksByIngredients, insertDrink };
+const updateDrink = async (body: DrinkCreateDTO): Promise<Drink[]> => {
+  const {
+    id,
+    drink_name,
+    instructions,
+    category_id,
+    rating,
+    glass1,
+    glass2,
+    video_url,
+  } = body;
+
+  return await db<DrinkCreateDTO>("drinks")
+    .where({ id })
+    .update(
+      {
+        drink_name,
+        instructions,
+        category_id,
+        rating,
+        glass1,
+        glass2,
+        video_url,
+      },
+      ["*"]
+    )
+    .catch((err: string) => {
+      throw err;
+    });
+};
+
+export default { getDrinks, getDrinksByIngredients, insertDrink, updateDrink };
