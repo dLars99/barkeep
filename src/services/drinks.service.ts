@@ -1,10 +1,10 @@
-import db from "../util/db";
 import data, { GetDrinksOptions } from "../repositories/drinks.respository";
+import ingredientData from "../repositories/ingredients.repository";
+import drinkIngredientData from "../repositories/drinkIngredients.repository";
 import {
   Drink,
   DrinkCardDTO,
   DrinkCreateDTO,
-  DrinkDatabaseModel,
   DrinkIngredient,
 } from "../models/drinks.model";
 
@@ -39,16 +39,7 @@ const addDrinkIngredients = async (
   ingredients: DrinkIngredient[]
 ): Promise<void> => {
   for (const ingredient of ingredients) {
-    const { ingredient_id, quantity, quantity_type } = ingredient;
-    const drinkIngredient: DrinkIngredient[] | void = await db<DrinkIngredient>(
-      "drink_ingredients"
-    )
-      .insert({ drink_id: drinkId, ingredient_id, quantity, quantity_type }, [
-        "*",
-      ])
-      .catch((err: string) => {
-        throw err;
-      });
+    await drinkIngredientData.addDrinkIngredient(drinkId, ingredient);
   }
 };
 
@@ -68,13 +59,7 @@ export const updateDrink = async (body: DrinkCreateDTO): Promise<Drink> => {
   const { id, ingredients } = body;
 
   // Get lists of ingredients to add and remove
-  const currentIngredients = await db<DrinkCreateDTO>("drink_ingredients")
-    .select("ingredient_id")
-    .where("drink_id", id)
-    .then((res) => res.map((ingredient) => ingredient.ingredient_id))
-    .catch((err: string) => {
-      throw err;
-    });
+  const currentIngredients = await ingredientData.getIngredientIdsByDrink(id);
 
   const ingredientsToAdd = ingredients.filter(
     (ingredient) => !currentIngredients.includes(ingredient.ingredient_id)
@@ -99,34 +84,12 @@ export const updateDrink = async (body: DrinkCreateDTO): Promise<Drink> => {
   if (ingredientsToAdd) await addDrinkIngredients(id, ingredientsToAdd);
 
   for (const ingredient of ingredientsToRemove) {
-    await db("drink_ingredients")
-      .where({ ingredient_id: ingredient })
-      .andWhere({ drink_id: id })
-      .delete()
-      .catch((err) => {
-        throw err;
-      });
+    await drinkIngredientData.deleteDrinkIngredient(id, ingredient);
   }
 
   if (ingredientsToUpdate) {
     for (const ingredient of ingredientsToUpdate) {
-      const { ingredient_id, quantity, quantity_type } = ingredient;
-      const drinkIngredient: DrinkIngredient[] | void =
-        await db<DrinkIngredient>("drink_ingredients")
-          .where({ ingredient_id })
-          .andWhere({ drink_id: id })
-          .update(
-            {
-              drink_id: id,
-              ingredient_id,
-              quantity,
-              quantity_type,
-            },
-            ["*"]
-          )
-          .catch((err: string) => {
-            throw err;
-          });
+      await drinkIngredientData.updateDrinkIngredient(id, ingredient);
     }
   }
 
