@@ -8,6 +8,11 @@ drinksRouter.get(
   async (req: Request, res: Response) => await get(req, res)
 );
 
+drinksRouter.get(
+  "/drinks/:drinkid",
+  async (req: Request, res: Response) => await get(req, res)
+);
+
 drinksRouter.post(
   "/drinks",
   async (req: Request, res: Response) => await post(req, res)

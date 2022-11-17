@@ -8,18 +8,30 @@ import {
 import { getCategories } from "../services/categories.service";
 
 export const get = async (req: Request, res: Response): Promise<Response> => {
-  const id = req.query.id as string;
+  const id = Number(req.params.drinkid) || Number(req.query.id);
   const query = req.query.query as string;
+  const limit = Number(req.query.limit);
+  const offset = Number(req.query.offset);
   const ingredientIds = req.query.ingredientId as string[];
   if (id && isNaN(Number(id))) return res.status(400).send("Invalid id");
+  if (limit && isNaN(Number(limit)))
+    return res.status(400).send("Invalid limit");
+  if (offset && isNaN(Number(offset)))
+    return res.status(400).send("Invalid offset");
   try {
-    let ingredients;
+    let drinks;
     if (ingredientIds?.length) {
-      ingredients = await getDrinksByIngredients(ingredientIds);
+      drinks = await getDrinksByIngredients(ingredientIds, limit, offset);
     } else {
-      ingredients = await getDrinks(Number(id), query);
+      const options = {
+        id,
+        limit,
+        offset,
+        query,
+      };
+      drinks = await getDrinks(options);
     }
-    return res.json(ingredients);
+    return res.json(drinks);
   } catch (err: unknown | any) {
     console.error(err);
     return res.status(500).send(err);
