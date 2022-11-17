@@ -1,4 +1,7 @@
-import data, { GetDrinksOptions } from "../repositories/drinks.respository";
+import data, {
+  GetDrinksOptions,
+  GetDrinksResult,
+} from "../repositories/drinks.respository";
 import ingredientData from "../repositories/ingredients.repository";
 import drinkIngredientData from "../repositories/drinkIngredients.repository";
 import {
@@ -10,27 +13,27 @@ import {
 
 export const getDrinks = async (
   drinkOptions: GetDrinksOptions
-): Promise<DrinkCardDTO[] | DrinkCardDTO> => {
+): Promise<GetDrinksResult | DrinkCardDTO> => {
   const { id } = drinkOptions;
   const drinks = await data.getDrinks(drinkOptions);
-  if (!drinks) {
+  if (!drinks || !drinks.data) {
     throw new Error("Could not get drinks");
   }
-  return id ? drinks[0] : drinks;
+  return id ? drinks.data[0] : drinks;
 };
 
 export const getDrinksByIngredients = async (
   ingredientIds: string[],
   limit = 10,
   offset = 0
-) => {
+): Promise<GetDrinksResult> => {
   const drinks = await data.getDrinksByIngredients(
     ingredientIds,
     limit,
     offset
   );
 
-  if (!drinks) throw new Error("Could not get drinks");
+  if (!drinks || !drinks.data) throw new Error("Could not get drinks");
   return drinks;
 };
 
